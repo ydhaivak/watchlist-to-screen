@@ -3,28 +3,57 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Gemini Web Tool Calling</title>
+        <title>Filmatch</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
         <style>
+            :root {
+                --bg: #0f0f0f;
+                --bg-card: #1a1a1a;
+                --bg-input: #141414;
+                --border: #2c2c2c;
+                --text: #e8e8e8;
+                --text-dim: #777;
+                --accent: #f59e0b;
+                --accent-dim: rgba(245, 158, 11, 0.10);
+            }
+
             * {
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
             }
+
             body {
                 font-family: system-ui, sans-serif;
+                background: var(--bg);
+                color: var(--text);
                 height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 padding: 3rem 1rem;
             }
+
             #container {
                 width: 100%;
                 max-width: 900px;
                 display: flex;
                 flex-direction: column;
-                border: 1px solid #e0e0e0;
+                border: 1px solid var(--border);
+                background: var(--bg);
             }
+
+            .app-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--accent);
+                padding: 0.75rem 1.5rem;
+                border-bottom: 1px solid var(--border);
+                background: var(--bg-card);
+                letter-spacing: 0.04em;
+            }
+
             #messages {
                 overflow-y: auto;
                 padding: 2rem;
@@ -33,142 +62,188 @@
                 gap: 1.5rem;
                 min-height: 450px;
                 max-height: 70vh;
+                background: var(--bg);
             }
+
             .msg {
                 line-height: 1.5;
                 max-width: 80%;
+                color: var(--text);
             }
+
             .msg.user {
                 align-self: flex-end;
                 text-align: right;
             }
+
             .msg .role {
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                color: #999;
+                color: var(--text-dim);
                 margin-bottom: 0.25rem;
             }
+
             .msg.loading .content {
-                color: #999;
+                color: var(--text-dim);
             }
+
             #input-area {
                 display: flex;
                 gap: 1rem;
                 padding: 1.5rem;
-                border-top: 1px solid #e0e0e0;
+                border-top: 1px solid var(--border);
+                background: var(--bg-card);
             }
+
             #user-input {
                 flex: 1;
                 padding: 0.75rem 0;
                 border: none;
-                border-bottom: 1px solid #e0e0e0;
+                border-bottom: 1px solid var(--border);
                 font-size: 1rem;
                 outline: none;
+                background: transparent;
+                color: var(--text);
             }
+
+            #user-input::placeholder {
+                color: var(--text-dim);
+            }
+
             #user-input:focus {
-                border-bottom-color: #000;
+                border-bottom-color: var(--accent);
             }
+
             button {
                 padding: 0.75rem 1.5rem;
-                background: #000;
-                color: #fff;
+                background: var(--accent);
+                color: #000;
                 border: none;
                 font-size: 0.75rem;
+                font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 cursor: pointer;
             }
 
-            /* Generic amber tool-call block */
-            .tool {
-                font-family: ui-monospace, monospace;
-                font-size: 0.75rem;
-                color: #555;
-                background: #f5f5f5;
-                border-left: 3px solid #f59e0b;
-                padding: 0.5rem 0.75rem;
-                margin: 0.25rem 0 0.75rem;
-                white-space: pre-wrap;
-                word-break: break-word;
+            button:disabled {
+                opacity: 0.3;
             }
-            .tool .label {
+
+            /* Collapsible tool-call log */
+            .tool-log {
+                font-family: monospace;
+                font-size: 0.72rem;
+                color: #888;
+                background: var(--bg-card);
+                border-left: 3px solid var(--accent);
+                margin: 0.25rem 0 0.5rem;
+            }
+
+            .tool-log summary {
+                padding: 0.35rem 0.6rem;
+                cursor: pointer;
+                list-style: none;
+                color: #b45309;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                color: #b45309;
+            }
+
+            .tool-log summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .tool-log-body {
+                padding: 0.35rem 0.6rem 0.5rem;
+                white-space: pre-wrap;
+                word-break: break-word;
+                border-top: 1px solid var(--border);
             }
 
             /* Film poster grid (show_films) */
             .film-grid-wrapper {
-                border-left: 3px solid #f59e0b;
+                border-left: 3px solid var(--accent);
                 margin: 0.25rem 0 0.75rem;
             }
+
             .film-grid-header {
                 font-family: ui-monospace, monospace;
                 font-size: 0.75rem;
                 color: #b45309;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                background: #f5f5f5;
+                background: var(--bg-card);
                 padding: 0.5rem 0.75rem;
             }
+
             .film-grid {
                 display: flex;
                 flex-direction: row;
                 gap: 0.75rem;
                 overflow-x: auto;
                 padding: 0.75rem;
-                background: #fafafa;
+                background: var(--bg-input);
             }
+
             .film-card {
                 flex: 0 0 110px;
                 display: flex;
                 flex-direction: column;
                 gap: 0.35rem;
             }
+
             .film-poster {
                 width: 110px;
                 height: 165px;
-                background: #e0e0e0;
+                background: var(--border);
                 overflow: hidden;
                 border-radius: 2px;
                 flex-shrink: 0;
             }
+
             .film-poster img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
                 display: block;
             }
+
             .film-poster.no-poster {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 text-align: center;
                 font-size: 0.6rem;
-                color: #888;
+                color: var(--text-dim);
                 padding: 0.4rem;
             }
+
             .film-info {
                 display: flex;
                 flex-direction: column;
                 gap: 0.15rem;
             }
+
             .film-title {
                 font-size: 0.68rem;
                 font-weight: 600;
                 line-height: 1.3;
+                color: var(--text);
             }
+
             .film-meta {
                 font-size: 0.6rem;
-                color: #999;
+                color: var(--text-dim);
             }
+
             .provider-logos {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 3px;
                 margin-top: 2px;
             }
+
             .provider-logos img {
                 width: 22px;
                 height: 22px;
@@ -176,20 +251,220 @@
                 object-fit: cover;
             }
 
-            button:disabled {
-                opacity: 0.3;
+            /* Markdown rendering inside assistant bubbles */
+            .msg.assistant .content p { margin-bottom: 0.5rem; }
+            .msg.assistant .content p:last-child { margin-bottom: 0; }
+            .msg.assistant .content ul,
+            .msg.assistant .content ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+            .msg.assistant .content li { margin-bottom: 0.2rem; }
+            .msg.assistant .content strong { font-weight: 600; }
+            .msg.assistant .content em { font-style: italic; }
+            .msg.assistant .content a { color: var(--accent); }
+            .msg.assistant .content code {
+                font-family: ui-monospace, monospace;
+                font-size: 0.85em;
+                background: var(--bg-card);
+                padding: 0.1em 0.3em;
+                border-radius: 2px;
             }
+
             #attribution {
                 font-size: 0.7rem;
-                color: #aaa;
+                color: var(--text-dim);
                 text-align: center;
                 padding: 0.5rem 1.5rem;
-                border-top: 1px solid #f0f0f0;
+                border-top: 1px solid var(--border);
+                background: var(--bg-card);
+            }
+
+            /* ------------------------------------------------------------------ */
+            /* Compatibility card                                                  */
+            /* ------------------------------------------------------------------ */
+            .compat-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 1.25rem;
+                margin: 0.25rem 0 0.75rem;
+                max-width: 100%;
+            }
+
+            .compat-top {
+                display: flex;
+                flex-direction: row;
+                gap: 1rem;
+                align-items: center;
+                margin-bottom: 0.75rem;
+            }
+
+            .compat-ring-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 110px;
+            }
+
+            .compat-ring-svg {
+                width: 110px;
+                height: 110px;
+            }
+
+            .ring-score-text {
+                fill: var(--text);
+                font-size: 22px;
+                font-weight: 700;
+            }
+
+            .ring-label-text {
+                fill: var(--text-dim);
+                font-size: 9px;
+            }
+
+            .compat-subtitle {
+                color: var(--text-dim);
+                font-size: 0.8rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .compat-profiles {
+                display: flex;
+                flex-direction: row;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                margin-bottom: 0.75rem;
+            }
+
+            .compat-profile {
+                display: flex;
+                flex-direction: row;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            .compat-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                display: block;
+                background: var(--border);
+                flex-shrink: 0;
+            }
+
+            .compat-profile-name {
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: var(--text);
+            }
+
+            .compat-profile-user {
+                color: var(--text-dim);
+                font-size: 0.7rem;
+            }
+
+            .compat-profile-stats {
+                color: var(--text-dim);
+                font-size: 0.7rem;
+            }
+
+            .compat-section {
+                margin-top: 0.75rem;
+            }
+
+            .compat-section-title {
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--accent);
+                margin-bottom: 0.4rem;
+            }
+
+            .compat-film-row {
+                display: flex;
+                flex-direction: row;
+                gap: 0.6rem;
+                overflow-x: auto;
+                padding-bottom: 0.3rem;
+            }
+
+            .compat-film-card {
+                flex: 0 0 90px;
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .compat-film-poster {
+                width: 90px;
+                height: 135px;
+                background: var(--border);
+                border-radius: 3px;
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+
+            .compat-film-poster img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .compat-film-poster.no-poster {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                font-size: 0.55rem;
+                color: var(--text-dim);
+                padding: 0.3rem;
+            }
+
+            .compat-film-title {
+                font-size: 0.62rem;
+                font-weight: 600;
+                line-height: 1.3;
+                color: var(--text);
+            }
+
+            .compat-film-ratings {
+                font-size: 0.58rem;
+                color: var(--text-dim);
+                line-height: 1.4;
+            }
+
+            @media (max-width: 480px) {
+                body {
+                    padding: 0;
+                    align-items: flex-start;
+                }
+
+                #container {
+                    border-left: none;
+                    border-right: none;
+                    border-top: none;
+                }
+
+                #messages {
+                    min-height: 60vh;
+                    max-height: 65vh;
+                    padding: 1rem;
+                }
+
+                .msg {
+                    max-width: 95%;
+                }
+
+                .compat-top {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
             }
         </style>
     </head>
     <body>
         <div id="container">
+            <h1 class="app-title">Filmatch</h1>
             <div id="messages"></div>
             <div id="attribution">
                 This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming data from JustWatch.
@@ -205,10 +480,25 @@
             </div>
         </div>
         <script>
+            // Open all markdown-rendered links in a new tab
+            marked.use({
+                renderer: {
+                    link(href, title, text) {
+                        const t = title ? ` title="${title}"` : "";
+                        return `<a href="${href}"${t} target="_blank" rel="noopener noreferrer">${text}</a>`;
+                    },
+                },
+            });
+
             const messages = document.getElementById("messages");
             const userInput = document.getElementById("user-input");
             const sendBtn = document.getElementById("send-btn");
             let sessionId = null;
+
+            function renderContent(role, text) {
+                if (role === "you") return text;
+                return DOMPurify.sanitize(marked.parse(text));
+            }
 
             function addMessage(role, text, isLoading = false) {
                 const div = document.createElement("div");
@@ -216,12 +506,15 @@
                     "msg " +
                     (role === "you" ? "user" : "assistant") +
                     (isLoading ? " loading" : "");
-                div.innerHTML =
-                    '<div class="role">' +
-                    role +
-                    '</div><div class="content">' +
-                    text +
-                    "</div>";
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "content";
+                if (role === "you" || isLoading) {
+                    contentDiv.textContent = text;
+                } else {
+                    contentDiv.innerHTML = renderContent(role, text);
+                }
+                div.innerHTML = '<div class="role">' + role + "</div>";
+                div.appendChild(contentDiv);
                 messages.appendChild(div);
                 messages.scrollTop = messages.scrollHeight;
                 return div;
@@ -315,6 +608,229 @@
                 return wrapper;
             }
 
+            // Build a small compat film card for use inside the compat card.
+            function renderCompatFilmCard(film, userA, userB, showRatings) {
+                const card = document.createElement("div");
+                card.className = "compat-film-card";
+
+                const posterDiv = document.createElement("div");
+                posterDiv.className = "compat-film-poster";
+                if (film.poster_url) {
+                    const img = document.createElement("img");
+                    img.src = film.poster_url;
+                    img.alt = film.title || "";
+                    img.loading = "lazy";
+                    posterDiv.appendChild(img);
+                } else {
+                    posterDiv.classList.add("no-poster");
+                    posterDiv.textContent = film.title || "?";
+                }
+                card.appendChild(posterDiv);
+
+                const titleEl = document.createElement("div");
+                titleEl.className = "compat-film-title";
+                titleEl.textContent =
+                    (film.title || "Unknown") + (film.year ? ` (${film.year})` : "");
+                card.appendChild(titleEl);
+
+                if (showRatings && userA && userB) {
+                    const rA = film[`${userA}_rating`];
+                    const rB = film[`${userB}_rating`];
+                    if (rA != null || rB != null) {
+                        const ratingsEl = document.createElement("div");
+                        ratingsEl.className = "compat-film-ratings";
+                        if (rA != null) ratingsEl.textContent += `${userA}: ${rA}\u2605\n`;
+                        if (rB != null) ratingsEl.textContent += `${userB}: ${rB}\u2605`;
+                        card.appendChild(ratingsEl);
+                    }
+                }
+
+                return card;
+            }
+
+            // Build the compatibility card for a compare_letterboxd_users result.
+            function renderCompatCard(call) {
+                let data;
+                try {
+                    data = JSON.parse(call.result);
+                } catch (_) {
+                    return null;
+                }
+                if (!data || !data.compatibility) return null;
+
+                const userA = data.user_a || "";
+                const userB = data.user_b || "";
+                const compat = data.compatibility || {};
+                const profA = data.profile_a || {};
+                const profB = data.profile_b || {};
+                const score = compat.score;
+                const meanDiff = compat.mean_abs_diff;
+                const bothSeen = data.both_seen ?? 0;
+
+                // Score label
+                let scoreLabel = "Opposites attract";
+                if (score != null) {
+                    if (score >= 80) scoreLabel = "Kindred spirits";
+                    else if (score >= 60) scoreLabel = "Common ground";
+                    else if (score >= 40) scoreLabel = "Friendly rivals";
+                }
+
+                // SVG ring
+                const R = 48;
+                const cx = 55, cy = 55;
+                const circumference = 2 * Math.PI * R;
+                const fraction = (score != null) ? Math.max(0, Math.min(1, score / 100)) : 0;
+                const dashOffset = circumference * (1 - fraction);
+
+                const card = document.createElement("div");
+                card.className = "compat-card";
+
+                // -- Top section: ring + right-side info --
+                const top = document.createElement("div");
+                top.className = "compat-top";
+
+                // Ring
+                const ringWrap = document.createElement("div");
+                ringWrap.className = "compat-ring-wrap";
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("viewBox", "0 0 110 110");
+                svg.setAttribute("class", "compat-ring-svg");
+
+                const bgCircle = document.createElementNS(svgNS, "circle");
+                bgCircle.setAttribute("cx", cx); bgCircle.setAttribute("cy", cy);
+                bgCircle.setAttribute("r", R);
+                bgCircle.setAttribute("fill", "none");
+                bgCircle.setAttribute("stroke", "#2c2c2c");
+                bgCircle.setAttribute("stroke-width", "8");
+                svg.appendChild(bgCircle);
+
+                const arc = document.createElementNS(svgNS, "circle");
+                arc.setAttribute("cx", cx); arc.setAttribute("cy", cy);
+                arc.setAttribute("r", R);
+                arc.setAttribute("fill", "none");
+                arc.setAttribute("stroke", "var(--accent)");
+                arc.setAttribute("stroke-width", "8");
+                arc.setAttribute("stroke-linecap", "round");
+                arc.setAttribute("stroke-dasharray", circumference);
+                arc.setAttribute("stroke-dashoffset", dashOffset);
+                arc.setAttribute("transform", `rotate(-90 ${cx} ${cy})`);
+                svg.appendChild(arc);
+
+                const scoreText = document.createElementNS(svgNS, "text");
+                scoreText.setAttribute("x", cx); scoreText.setAttribute("y", cy + 7);
+                scoreText.setAttribute("text-anchor", "middle");
+                scoreText.setAttribute("class", "ring-score-text");
+                scoreText.textContent = score != null ? score : "–";
+                svg.appendChild(scoreText);
+
+                const labelText = document.createElementNS(svgNS, "text");
+                labelText.setAttribute("x", cx); labelText.setAttribute("y", cy + 20);
+                labelText.setAttribute("text-anchor", "middle");
+                labelText.setAttribute("class", "ring-label-text");
+                labelText.textContent = scoreLabel;
+                svg.appendChild(labelText);
+
+                ringWrap.appendChild(svg);
+                top.appendChild(ringWrap);
+
+                // Right-side info
+                const topRight = document.createElement("div");
+                topRight.style.flex = "1";
+
+                const subtitle = document.createElement("div");
+                subtitle.className = "compat-subtitle";
+                const subtitleParts = [];
+                if (bothSeen > 0) subtitleParts.push(`Both seen ${bothSeen} films`);
+                if (meanDiff != null) subtitleParts.push(`${meanDiff}\u2605 apart on average`);
+                subtitle.textContent = subtitleParts.join(" · ");
+                topRight.appendChild(subtitle);
+
+                // Profiles
+                const profilesEl = document.createElement("div");
+                profilesEl.className = "compat-profiles";
+
+                function buildProfile(prof, username) {
+                    const wrap = document.createElement("div");
+                    wrap.className = "compat-profile";
+
+                    if (prof.avatar_url) {
+                        const img = document.createElement("img");
+                        img.src = prof.avatar_url;
+                        img.alt = username;
+                        img.className = "compat-avatar";
+                        img.loading = "lazy";
+                        wrap.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement("div");
+                        placeholder.className = "compat-avatar";
+                        placeholder.style.cssText = "display:flex;align-items:center;justify-content:center;font-size:1rem";
+                        placeholder.textContent = (username[0] || "?").toUpperCase();
+                        wrap.appendChild(placeholder);
+                    }
+
+                    const textWrap = document.createElement("div");
+
+                    const nameEl = document.createElement("div");
+                    nameEl.className = "compat-profile-name";
+                    nameEl.textContent = prof.display_name || username;
+                    textWrap.appendChild(nameEl);
+
+                    const userEl = document.createElement("div");
+                    userEl.className = "compat-profile-user";
+                    userEl.textContent = username;
+                    textWrap.appendChild(userEl);
+
+                    const statsEl = document.createElement("div");
+                    statsEl.className = "compat-profile-stats";
+                    const parts = [];
+                    if (prof.watched != null) parts.push(`${prof.watched} watched`);
+                    if (prof.rated != null) parts.push(`${prof.rated} rated`);
+                    if (prof.avg_rating != null) parts.push(`${prof.avg_rating}\u2605 avg`);
+                    statsEl.textContent = parts.join(" · ");
+                    textWrap.appendChild(statsEl);
+
+                    wrap.appendChild(textWrap);
+                    return wrap;
+                }
+
+                profilesEl.appendChild(buildProfile(profA, userA));
+                profilesEl.appendChild(buildProfile(profB, userB));
+                topRight.appendChild(profilesEl);
+                top.appendChild(topRight);
+                card.appendChild(top);
+
+                // -- Film row helper --
+                function appendFilmRow(title, films, extraNote) {
+                    if (!films || films.length === 0) return;
+                    const section = document.createElement("div");
+                    section.className = "compat-section";
+                    const sTitle = document.createElement("div");
+                    sTitle.className = "compat-section-title";
+                    sTitle.textContent = title + (extraNote ? `  ${extraNote}` : "");
+                    section.appendChild(sTitle);
+                    const row = document.createElement("div");
+                    row.className = "compat-film-row";
+                    for (const film of films) {
+                        row.appendChild(renderCompatFilmCard(film, userA, userB, false));
+                    }
+                    section.appendChild(row);
+                    card.appendChild(section);
+                }
+
+                // Both seen
+                const bsTotal = data.both_seen_total ?? bothSeen;
+                const bsFilms = data.both_seen_films || [];
+                const bsNote = bsTotal > bsFilms.length ? `+${bsTotal - bsFilms.length} more` : "";
+                appendFilmRow(`Both seen (${bsTotal})`, bsFilms, bsNote);
+
+                // Shared watchlist
+                const swl = data.shared_watchlist || [];
+                appendFilmRow(`On both watchlists (${swl.length})`, swl, "");
+
+                return card;
+            }
+
             async function send() {
                 const text = userInput.value.trim();
                 if (!text) return;
@@ -337,33 +853,39 @@
                     sessionId = data.session_id;
 
                     // Render each tool call above the assistant's answer.
-                    // show_films → poster grid; everything else → amber code block.
+                    // show_films → poster grid
+                    // compare_letterboxd_users → compat card
+                    // everything else → collapsible tool-log
                     for (const call of data.tool_calls || []) {
                         let el = null;
+
                         if (call.name === "show_films") {
                             el = renderFilmGrid(call);
+                        } else if (call.name === "compare_letterboxd_users") {
+                            el = renderCompatCard(call);
                         }
+
                         if (!el) {
-                            el = document.createElement("div");
-                            el.className = "tool";
-                            const label = document.createElement("span");
-                            label.className = "label";
-                            label.textContent = "tool call  ";
-                            el.appendChild(label);
-                            el.appendChild(
-                                document.createTextNode(
-                                    call.name +
-                                        "(" +
-                                        JSON.stringify(call.args) +
-                                        ")\n→ " +
-                                        call.result,
-                                ),
-                            );
+                            // Collapsible log for all other tool calls
+                            const details = document.createElement("details");
+                            details.className = "tool-log";
+                            const summary = document.createElement("summary");
+                            summary.textContent = `tool call  ${call.name}`;
+                            details.appendChild(summary);
+                            const body = document.createElement("div");
+                            body.className = "tool-log-body";
+                            body.textContent =
+                                JSON.stringify(call.args, null, 2) +
+                                "\n\u2192 " +
+                                call.result;
+                            details.appendChild(body);
+                            el = details;
                         }
+
                         messages.insertBefore(el, loading);
                     }
 
-                    loading.querySelector(".content").textContent = data.response;
+                    loading.querySelector(".content").innerHTML = DOMPurify.sanitize(marked.parse(data.response));
                     loading.classList.remove("loading");
                 } catch (e) {
                     loading.querySelector(".content").textContent = "Error: " + e.message;
