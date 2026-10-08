@@ -25,17 +25,20 @@ Watchlist to Screen is a chat agent built on Gemini. Give it any **public Letter
 
 The agent keeps the conversation in memory, so follow-ups work naturally: *"Which of those is shortest?"*, *"What about Netflix instead?"*, *"Any of them in theaters?"*
 
-## Sample queries for grading
+## Sample queries
 
 Paste these into the chat, or click them on the intro curtain:
 
-1. **Streaming filter:**
+1. **Watchlist:**
+   > What are movies on yegandk's watchlist?
+
+2. **Streaming filter:**
    > What movies on yegandk's watchlist can I stream on HBO Max?
 
-2. **Two-person match + where to watch:**
+3. **Two-person match + where to watch:**
    > What's on both yegandk's and aa3345's watchlists, and where can we stream them?
 
-3. **Theaters near you:**
+4. **Theaters near you:**
    > Is anything on yegandk's watchlist in theaters near me? My zip code is 10027.
 
 Good follow-ups to test memory: *"Which of those is the shortest?"* or *"Show me only the ones from before 2000."*
