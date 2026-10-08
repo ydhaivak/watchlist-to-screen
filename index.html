@@ -33,14 +33,14 @@
                AUDITORIUM / BODY
                Three-layer background: base dark navy → top glow → radial vignette
             ================================================================ */
-            html { height: 100%; }
+            html { height: 100dvh; overflow: hidden; }
 
             body {
-                min-height: 100%;
+                height: 100dvh;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                overflow-x: hidden;
+                overflow: hidden;
                 font-family: system-ui, sans-serif;
                 background:
                     /* Radial vignette — darkens the side walls */
@@ -79,11 +79,11 @@
                 position: relative;
                 z-index: 10;
                 width: 100%;
-                max-width: 860px;
+                max-width: min(1200px, 92vw);
+                flex: 1;
+                min-height: 0;
                 display: flex;
                 flex-direction: column;
-                /* Tiny breathing room at the bottom */
-                padding-bottom: 0.5rem;
             }
 
             /* ================================================================
@@ -118,6 +118,9 @@
             .screen-outer {
                 position: relative;
                 width: 100%;
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
             }
 
             /* The glow that bleeds onto the auditorium walls */
@@ -140,6 +143,9 @@
                 background: #080808;
                 padding: 4px 5px 0;
                 border-radius: 3px 3px 0 0;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
                 /* The main screen glow */
                 box-shadow:
                     0 0  50px 15px rgba(190, 215, 255, 0.28),
@@ -164,8 +170,8 @@
                     /* Very faint inner vignette for that curved-screen look */
                     radial-gradient(ellipse 90% 75% at 50% 48%,
                         #f5f0de 0%, #eee7d0 100%);
-                min-height: 300px;
-                max-height: 52vh;
+                flex: 1;
+                min-height: 0;
                 overflow-y: auto;
                 padding: 1.75rem 1.75rem 1.25rem;
                 display: flex;
@@ -529,7 +535,7 @@
             ================================================================ */
             .theater-seats {
                 width: 100%;
-                height: 155px;
+                height: 90px;
                 overflow: hidden;
                 pointer-events: none;
                 position: relative;
@@ -559,23 +565,19 @@
             @media (max-width: 520px) {
                 .marquee { padding: 0.4rem 0.8rem; }
 
-                #messages {
-                    max-height: 58vh;
-                    min-height: 240px;
-                    padding: 1.1rem 1rem 0.8rem;
-                }
+                #messages { padding: 1.1rem 1rem 0.8rem; }
 
                 .msg { max-width: 96%; }
 
                 .compat-top { flex-direction: column; align-items: flex-start; }
 
-                .theater-seats { height: 80px; }
+                .theater-seats { display: none; }
 
                 #input-area { padding: 0.85rem 0.9rem; }
             }
 
             @media (max-height: 580px) {
-                .theater-seats { height: 60px; }
+                .theater-seats { height: 50px; }
             }
 
             @media (max-height: 480px) {
@@ -645,8 +647,8 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                padding: 2rem 2.5rem 1.5rem;
+                justify-content: safe center;
+                padding: 1.5rem 2.5rem;
                 /* Soft semi-transparent overlay so text is readable over folds */
                 background: rgba(50,5,5,0.35);
                 overflow-y: auto;
@@ -1308,15 +1310,14 @@
                 if (!container) return;
 
                 const VW = 1000;   // SVG logical width
-                const VH = 155;    // SVG logical height
+                const VH = 90;     // SVG logical height
 
                 // Each row: { y (top of headrest), sw (seat width), sh (seat total height),
                 //             gap (space between seats), bodyFill, headFill }
                 // Rows ordered back-to-front so front row renders on top.
                 const rows = [
-                    { y:  8, sw: 27, sh: 35, gap:  7, body: "#221010", head: "#2e1616" },
-                    { y: 50, sw: 35, sh: 45, gap:  9, body: "#341515", head: "#421c1c" },
-                    { y: 98, sw: 44, sh: 57, gap: 11, body: "#461c1c", head: "#582424" },
+                    { y:  5, sw: 30, sh: 36, gap:  8, body: "#2a1212", head: "#381818" },
+                    { y: 44, sw: 42, sh: 46, gap: 11, body: "#461c1c", head: "#582424" },
                 ];
 
                 const NS = "http://www.w3.org/2000/svg";
